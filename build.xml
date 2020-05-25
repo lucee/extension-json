@@ -69,7 +69,7 @@
     <loadfile property="fld1" srcFile="${build}/classic/common.fld" />
     <replace haystack="${fld1}" needle="{base-package}" repl="${packagename}" property="fld2"/>
     <replace haystack="${fld2}" needle="{bundle-name}" repl="${packagename}" property="fld3"/>
-    <replace haystack="${fld3}" needle="{bundle-version}" repl="${bundleversion}${build.number}" property="fld4"/>
+    <replace haystack="${fld3}" needle="{bundle-version}" repl="${bundleversion}${build.number}${versionAppendix}" property="fld4"/>
     <echo message="${fld4}" file="${temp}/flds/${filename}.fld"/>
 
   </target>
@@ -77,11 +77,11 @@
 
   <target name="buildJars" depends="flds" description="generate the distribution">
     <jar 
-      jarfile="${temp}/jars/${filename}-${bundleversion}${build.number}.jar" 
+      jarfile="${temp}/jars/${filename}-${bundleversion}${build.number}${versionAppendix}.jar" 
       basedir="${temp}/classes"  
       manifest="${src}/META-INF/MANIFEST.MF">
       <manifest>
-        <attribute name="Bundle-Version" value="${bundleversion}${build.number}"/>
+        <attribute name="Bundle-Version" value="${bundleversion}${build.number}${versionAppendix}"/>
         <attribute name="Built-Date" value="${NOW}"/>
         <attribute name="Bundle-SymbolicName" value="${packagename}"/>
       </manifest>
@@ -94,7 +94,7 @@
     <!-- Manifest of the extension -->
     <echo file="${temp}/META-INF/MANIFEST.MF">Manifest-Version: 1.0
 Built-Date: ${NOW}
-version: "${bundleversion}${build.number}"
+version: "${bundleversion}${build.number}${versionAppendix}"
 id: "${id}"
 name: "${label}"
 description: "${description}"
@@ -131,7 +131,7 @@ lucee-core-version: "5.0.0.46"
 
 
     <!-- Zip everything  -->
-     <zip destfile="${dist}/extension-${filename}-${bundleversion}${build.number}.lex">
+     <zip destfile="${dist}/extension-${filename}-${bundleversion}${build.number}${versionAppendix}.lex">
         <zipfileset dir="${temp}/"/>
         <zipfileset dir="${temp}/flds" prefix="flds" filemode="777"/>
     </zip>
