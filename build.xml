@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project default="clean" basedir="." name="extension-json">
+  <description>
+        Extension - JSON
+    </description>
+   
+  <property file="build.properties"/>
+  <buildnumber file="build.number"/>
+
+  <!-- set global properties for this build -->
+  <property name="src" location="src"/>
+  <property name="lib" location="lib"/>
+  <property name="temp" location="temp"/>
+  <property name="build" location="build"/>
+  <property name="dist"  location="dist"/>
+
+
+  <tstamp>
+    <format property="NOW" pattern="yyyy-MM-dd HH:mm:ss" />
+  </tstamp>
+
+
+  <path id="classpath">
+    <fileset dir="${lib}">
+      <include name="**/*.jar" />
+    </fileset>
+  </path>
+  
+
+  <scriptdef name="replace" language="javascript">
+     <attribute name="haystack" />
+     <attribute name="needle" />
+     <attribute name="repl" />
+     <attribute name="property" />
+     <![CDATA[
+      var text = attributes.get("haystack");
+      var needle = attributes.get("needle");
+      var repl = attributes.get("repl");
+      text=text.trim();
+
+      var regex = new RegExp(needle,"g");
+      text=text.replace(regex,repl);
+      project.setProperty(attributes.get("property"), text);
+     ]]>
+  </scriptdef>
+
+
+  <target name="init">
+    <!-- Create the time stamp -->
+    <tstamp/>
+    
+    <delete dir="${temp}"/>
+    <delete dir="${dist}"/>
+
+    <!-- Create the build directory structure used by compile -->
+    <mkdir dir="${dist}/"/>
+  </target>
+
+
+  <target name="compile" depends="init" description="compile the source ">
+    <mkdir dir="${temp}/classes"/>
+    <javac srcdir="${src}" target="1.7" destdir="${temp}/classes" debug="true" debuglevel="lines,vars,source">
+      <classpath refid="classpath" />
+    </javac>
+  </target>
+
+  <target name="flds" depends="compile" description="compile the source ">
+    <!-- copy the common.fld -->
+    <loadfile property="fld1" srcFile="${build}/classic/common.fld" />
+    <replace haystack="${fld1}" needle="{base-package}" repl="${packagename}" property="fld2"/>
+    <replace haystack="${fld2}" needle="{bundle-name}" repl="${packagename}" property="fld3"/>
+    <replace haystack="${fld3}" needle="{bundle-version}" repl="${bundleversion}${build.number}" property="fld4"/>
+    <echo message="${fld4}" file="${temp}/flds/${filename}.fld"/>
+
+  </target>
+
+
+  <target name="buildJars" depends="flds" description="generate the distribution">
+    <jar 
+      jarfile="${temp}/jars/${filename}-${bundleversion}${build.number}.jar" 
+      basedir="${temp}/classes"  
+      manifest="${src}/META-INF/MANIFEST.MF">
+      <manifest>
+        <attribute name="Bundle-Version" value="${bundleversion}${build.number}"/>
+        <attribute name="Built-Date" value="${NOW}"/>
+        <attribute name="Bundle-SymbolicName" value="${packagename}"/>
+      </manifest>
+    </jar>
+  </target>
+
+  <target name="dist" depends="buildJars" description="copy source file to temp" >
+    
+
+    <!-- Manifest of the extension -->
+    <echo file="${temp}/META-INF/MANIFEST.MF">Manifest-Version: 1.0
+Built-Date: ${NOW}
+version: "${bundleversion}${build.number}"
+id: "${id}"
+name: "${label}"
+description: "${description}"
+start-bundles: true
+category: "${category}"
+author: "${author}"
+lucee-core-version: "5.0.0.46"
+</echo>
+
+
+    <!-- copy the jars necessary -->
+    <copy todir="${temp}/jars">
+      <fileset dir="${lib}">
+        <include name="**/*.jar"/>
+        <exclude name="**/javax.servlet.jar"/>
+        <exclude name="**/lucee*.jar"/>
+      </fileset>
+    </copy>
+
+    <!-- copy the jar just build -->
+    <copy todir="${temp}/jars">
+      <fileset dir="${temp}/jars/">
+        <include name="**/*.jar"/>
+      </fileset>
+    </copy>
+
+    <!-- copy the logo -->
+    <copy todir="${temp}/META-INF">
+      <fileset dir="${build}/images">
+        <include name="logo.png"/>
+      </fileset>
+    </copy>
+
+
+
+    <!-- Zip everything  -->
+     <zip destfile="${dist}/extension-${filename}-${bundleversion}${build.number}.lex">
+        <zipfileset dir="${temp}/"/>
+        <zipfileset dir="${temp}/flds" prefix="flds" filemode="777"/>
+    </zip>
+    
+  </target>
+
+  <target name="clean" depends="dist" description="clean up" >
+    <delete dir="${temp}"/>
+  </target>
+
+</project>

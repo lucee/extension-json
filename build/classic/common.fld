@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE func-lib PUBLIC "-//Railo//DTD CFML Function Library 1.0//EN"
+	"dtd/web-cfmfunctionlibrary_1_0.dtd">
+<!-- http://www.getrailo.com/j2ee/dtd/web-jspfunctionlibrary_1_0.dtd -->
+<func-lib>
+	<flib-version>1.00</flib-version>
+	<short-name>JSON</short-name>
+	<uri>http://lucee.org/extensions/json/functions/1_0_0</uri>
+	<display-name>JSON</display-name>
+	<description>JSON functions</description>
+	
+
+	<function>
+		<name>ValidateJson</name>
+		<class 
+			bundle-name="{bundle-name}" 
+			bundle-version="{bundle-version}">org.lucee.extension.json.function.ValidateJson</class>
+		<description>validate a json string</description>
+		<argument>
+			<name>json</name>
+			<alias>str</alias>
+			<type>string</type>
+			<required>yes</required>
+			<description>String to validate</description>
+		</argument>
+		<argument>
+			<name>schema</name>
+			<type>string</type>
+			<required>yes</required>
+			<description></description>
+		</argument>
+		<argument>
+			<name>throwonError</name>
+			<type>boolean</type>
+			<default>false</default>
+			<required>no</required>
+			<description>throw an exception in case of an error, when false no exception is thrown, instead the errors are returned in an array of structs.</description>
+		</argument>
+		<return>
+			<type>struct</type>
+		</return>
+	</function>
+	
+	
+</func-lib>
