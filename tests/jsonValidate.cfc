@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="jsonExt" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="jsonExt" skip=true {
 
 	function beforeAll() {
 		
