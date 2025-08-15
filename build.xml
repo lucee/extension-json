@@ -3,16 +3,13 @@
   <description>
         Extension - JSON
     </description>
-   
-  <property file="build.properties"/>
-  <buildnumber file="build.number"/>
 
   <!-- set global properties for this build -->
   <property name="src" location="src"/>
   <property name="lib" location="lib"/>
   <property name="temp" location="temp"/>
   <property name="build" location="build"/>
-  <property name="dist"  location="dist"/>
+  <property name="dist"  location="target"/>
 
 
   <tstamp>
@@ -26,25 +23,6 @@
     </fileset>
   </path>
   
-
-  <scriptdef name="replace" language="javascript">
-     <attribute name="haystack" />
-     <attribute name="needle" />
-     <attribute name="repl" />
-     <attribute name="property" />
-     <![CDATA[
-      var text = attributes.get("haystack");
-      var needle = attributes.get("needle");
-      var repl = attributes.get("repl");
-      text=text.trim();
-
-      var regex = new RegExp(needle,"g");
-      text=text.replace(regex,repl);
-      project.setProperty(attributes.get("property"), text);
-     ]]>
-  </scriptdef>
-
-
   <target name="init">
     <!-- Create the time stamp -->
     <tstamp/>
@@ -59,31 +37,40 @@
 
   <target name="compile" depends="init" description="compile the source ">
     <mkdir dir="${temp}/classes"/>
-    <javac srcdir="${src}" target="1.7" destdir="${temp}/classes" debug="true" debuglevel="lines,vars,source">
+    <javac srcdir="${src}" source="11" target="11" destdir="${temp}/classes" debug="true" debuglevel="lines,vars,source">
       <classpath refid="classpath" />
     </javac>
   </target>
 
   <target name="flds" depends="compile" description="compile the source ">
-    <!-- copy the common.fld -->
-    <loadfile property="fld1" srcFile="${build}/classic/common.fld" />
-    <replace haystack="${fld1}" needle="{base-package}" repl="${packagename}" property="fld2"/>
-    <replace haystack="${fld2}" needle="{bundle-name}" repl="${packagename}" property="fld3"/>
-    <replace haystack="${fld3}" needle="{bundle-version}" repl="${bundleversion}${build.number}${versionAppendix}" property="fld4"/>
-    <echo message="${fld4}" file="${temp}/flds/${filename}.fld"/>
+    <!-- copy the tlds necessary -->
+    <copy 
+      file="${build}/classic/common.fld" 
+      tofile="${temp}/flds/${filename}.fld" />
+
+    <replaceregexp 
+      file="${temp}/flds/${filename}.fld" 
+      match="\{bundle-name\}" 
+      replace="${bundlename}" 
+      byline="true"/>
+    <replaceregexp 
+      file="${temp}/flds/${filename}.fld" 
+      match="\{bundle-version\}" 
+      replace="${bundleversion}" 
+      byline="true"/>
 
   </target>
 
 
   <target name="buildJars" depends="flds" description="generate the distribution">
     <jar 
-      jarfile="${temp}/jars/${filename}-${bundleversion}${build.number}${versionAppendix}.jar" 
+      jarfile="${temp}/jars/${bundlename}-${bundleversion}.jar" 
       basedir="${temp}/classes"  
       manifest="${src}/META-INF/MANIFEST.MF">
       <manifest>
-        <attribute name="Bundle-Version" value="${bundleversion}${build.number}${versionAppendix}"/>
+        <attribute name="Bundle-Version" value="${bundleversion}"/>
         <attribute name="Built-Date" value="${NOW}"/>
-        <attribute name="Bundle-SymbolicName" value="${packagename}"/>
+        <attribute name="Bundle-SymbolicName" value="${bundlename}"/>
       </manifest>
     </jar>
   </target>
@@ -94,14 +81,12 @@
     <!-- Manifest of the extension -->
     <echo file="${temp}/META-INF/MANIFEST.MF">Manifest-Version: 1.0
 Built-Date: ${NOW}
-version: "${bundleversion}${build.number}${versionAppendix}"
+version: "${bundleversion}"
 id: "${id}"
 name: "${label}"
 description: "${description}"
 start-bundles: true
-category: "${category}"
-author: "${author}"
-lucee-core-version: "5.0.0.46"
+lucee-core-version: "${luceeCoreVersion}"
 </echo>
 
 
@@ -131,7 +116,7 @@ lucee-core-version: "5.0.0.46"
 
 
     <!-- Zip everything  -->
-     <zip destfile="${dist}/extension-${filename}-${bundleversion}${build.number}${versionAppendix}.lex">
+     <zip destfile="${dist}/${filename}-${bundleversion}.lex">
         <zipfileset dir="${temp}/"/>
         <zipfileset dir="${temp}/flds" prefix="flds" filemode="777"/>
     </zip>
